@@ -1,0 +1,134 @@
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UIListLayout = Instance.new("UIListLayout")
+local SpeedLabel = Instance.new("TextLabel")
+local DiscordLink = Instance.new("TextButton")
+
+-- Setup
+ScreenGui.Name = "VoidHubV2"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.Position = UDim2.new(0.8, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 220, 0, 480) -- Slightly taller for the link
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 15)
+MainCorner.Parent = MainFrame
+
+UIListLayout.Parent = MainFrame
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 8)
+
+-- 1. THE "HT" LINK (Discord Link)
+DiscordLink.Name = "DiscordLink"
+DiscordLink.Parent = MainFrame
+DiscordLink.BackgroundTransparency = 1
+DiscordLink.Size = UDim2.new(0, 200, 0, 30)
+DiscordLink.Font = Enum.Font.GothamBold
+DiscordLink.Text = "ht"
+DiscordLink.TextColor3 = Color3.fromRGB(180, 100, 255) -- Purpleish pink
+DiscordLink.TextSize = 24
+DiscordLink.LayoutOrder = -1 -- Keeps it at the top
+
+DiscordLink.MouseButton1Click:Connect(function()
+    -- Roblox can't open browsers easily, so we copy it to clipboard
+    if setclipboard then
+        setclipboard("https://discord.gg/3fq5BTMp8")
+        print("Discord link copied to clipboard!")
+    else
+        print("Discord: discord.gg/3fq5BTMp8")
+    end
+end)
+
+-- 2. SPEED LABEL
+SpeedLabel.Name = "SpeedLabel"
+SpeedLabel.Parent = MainFrame
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Size = UDim2.new(0, 200, 0, 30)
+SpeedLabel.Font = Enum.Font.GothamBold
+SpeedLabel.Text = "Speed: 0.0"
+SpeedLabel.TextColor3 = Color3.fromRGB(255, 60, 255)
+SpeedLabel.TextSize = 18
+
+-- 3. WIN NOTIFICATION FUNCTION (Matching your image)
+local function ShowWinMessage(username)
+    local WinLabel = Instance.new("TextLabel")
+    WinLabel.Parent = ScreenGui
+    WinLabel.BackgroundTransparency = 1
+    WinLabel.Position = UDim2.new(0.5, -200, 0.7, 0)
+    WinLabel.Size = UDim2.new(0, 400, 0, 50)
+    WinLabel.Font = Enum.Font.GothamBold
+    WinLabel.Text = "@" .. username .. " won the duel!"
+    WinLabel.TextSize = 35
+    
+    -- Blue/White Stroke effect from image
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Parent = WinLabel
+    Stroke.Thickness = 3
+    Stroke.Color = Color3.fromRGB(0, 0, 0)
+    
+    WinLabel.TextColor3 = Color3.fromRGB(80, 180, 255) -- Blue text
+    
+    -- Fade out and disappear
+    task.wait(3)
+    for i = 0, 1, 0.1 do
+        WinLabel.TextTransparency = i
+        Stroke.Transparency = i
+        task.wait(0.05)
+    end
+    WinLabel:Destroy()
+end
+
+-- 4. BUTTON GENERATOR
+local function CreateButton(name, defaultText)
+    local Button = Instance.new("TextButton")
+    local ButtonCorner = Instance.new("UICorner")
+    local Stroke = Instance.new("UIStroke")
+    
+    Button.Name = name
+    Button.Parent = MainFrame
+    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Button.Size = UDim2.new(0, 190, 0, 55)
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = defaultText .. " OFF"
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 16
+    
+    ButtonCorner.CornerRadius = UDim.new(0, 12)
+    ButtonCorner.Parent = Button
+    
+    Stroke.Parent = Button
+    Stroke.Thickness = 2
+    Stroke.Color = Color3.fromRGB(140, 60, 255)
+    
+    local toggled = false
+    Button.MouseButton1Click:Connect(function()
+        toggled = not toggled
+        if toggled then
+            Button.BackgroundColor3 = Color3.fromRGB(140, 60, 255)
+            Button.Text = defaultText .. " ON"
+            
+            -- Example: Triggering the win message when you enable a button
+            if name == "AutoGrab" then
+                ShowWinMessage(game.Players.LocalPlayer.Name)
+            end
+        else
+            Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            Button.Text = defaultText .. " OFF"
+        end
+    end)
+end
+
+-- Create the buttons
+CreateButton("AutoLeft", "Auto Left")
+CreateButton("AutoRight", "Auto Right")
+CreateButton("BatTarget", "Bat Target")
+CreateButton("CarryMode", "Carry Mode")
+CreateButton("AutoGrab", "Auto Grab")
