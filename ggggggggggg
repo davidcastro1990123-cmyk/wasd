@@ -1,0 +1,183 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+-- Cleanup
+if CoreGui:FindFirstChild("VoidHub_Brainrot") then CoreGui.VoidHub_Brainrot:Destroy() end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "VoidHub_Brainrot"
+ScreenGui.Parent = CoreGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+MainFrame.Position = UDim2.new(0.5, -110, 0.4, -200)
+MainFrame.Size = UDim2.new(0, 220, 0, 480)
+MainFrame.BorderSizePixel = 0
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 15)
+MainCorner.Parent = MainFrame
+
+-- Header
+local HT = Instance.new("TextButton")
+HT.Parent = MainFrame
+HT.BackgroundTransparency = 1
+HT.Size = UDim2.new(1, 0, 0, 40)
+HT.Font = Enum.Font.GothamBold
+HT.Text = "ht"
+HT.TextColor3 = Color3.fromRGB(180, 100, 255)
+HT.TextSize = 25
+HT.MouseButton1Click:Connect(function() setclipboard("https://discord.gg/3fq5BTMp8") end)
+
+-- Speed Label
+local SpeedLabel = Instance.new("TextLabel")
+SpeedLabel.Parent = MainFrame
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Position = UDim2.new(0, 0, 0, 40)
+SpeedLabel.Size = UDim2.new(1, 0, 0, 20)
+SpeedLabel.Font = Enum.Font.GothamBold
+SpeedLabel.Text = "Speed: 60.0"
+SpeedLabel.TextColor3 = Color3.fromRGB(255, 60, 255)
+SpeedLabel.TextSize = 16
+
+-- Container for Separated Boxes
+local Container = Instance.new("ScrollingFrame")
+Container.Parent = MainFrame
+Container.BackgroundTransparency = 1
+Container.Position = UDim2.new(0, 10, 0, 70)
+Container.Size = UDim2.new(0, 200, 0, 390)
+Container.CanvasSize = UDim2.new(0, 0, 0, 500)
+Container.ScrollBarThickness = 0
+
+local Layout = Instance.new("UIListLayout")
+Layout.Parent = Container
+Layout.Padding = UDim.new(0, 15) -- This separates the boxes
+
+-- Logic Variables
+local Toggles = {
+    Left = false,
+    Right = false,
+    Bat = false,
+    Grab = false
+}
+
+-- FUNCTION: Create Individual Boxes
+local function CreateBox(name, text, callback)
+    local Box = Instance.new("Frame")
+    Box.Size = UDim2.new(1, 0, 0, 60)
+    Box.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Box.Parent = Container
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 10)
+    Corner.Parent = Box
+
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 1, 0)
+    Btn.BackgroundTransparency = 1
+    Btn.Font = Enum.Font.GothamBold
+    Btn.TextColor3 = Color3.fromRGB(180, 100, 255)
+    Btn.Text = text .. " OFF"
+    Btn.TextSize = 14
+    Btn.Parent = Box
+    
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Parent = Box
+    Stroke.Thickness = 2
+    Stroke.Color = Color3.fromRGB(60, 60, 60)
+
+    Btn.MouseButton1Click:Connect(function()
+        Toggles[name] = not Toggles[name]
+        if Toggles[name] then
+            Stroke.Color = Color3.fromRGB(180, 100, 255)
+            Btn.Text = text .. " ON"
+        else
+            Stroke.Color = Color3.fromRGB(60, 60, 60)
+            Btn.Text = text .. " OFF"
+        end
+    end)
+end
+
+-- 1. Auto Left Logic (To Left Base -> First Right Slot)
+task.spawn(function()
+    while task.wait() do
+        if Toggles.Left then
+            local Root = LocalPlayer.Character.HumanoidRootPart
+            -- Replace "LeftBasePart" with the actual part name in workspace
+            local Target = workspace:FindFirstChild("LeftBasePart", true) or workspace:FindFirstChild("Slot1", true)
+            if Target then Root.CFrame = Target.CFrame end
+        end
+    end
+end)
+
+-- 2. Auto Right Logic (To Right Base -> First Left Slot)
+task.spawn(function()
+    while task.wait() do
+        if Toggles.Right then
+            local Root = LocalPlayer.Character.HumanoidRootPart
+            local Target = workspace:FindFirstChild("RightBasePart", true) or workspace:FindFirstChild("SlotA", true)
+            if Target then Root.CFrame = Target.CFrame end
+        end
+    end
+end)
+
+-- 3. Bat Target (Kill Aura)
+task.spawn(function()
+    while task.wait(0.1) do
+        if Toggles.Bat then
+            for _, v in pairs(Players:GetPlayers()) do
+                if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                    local dist = (LocalPlayer.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                    if dist < 15 then
+                        -- Simulates Hitting
+                        local Tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                        if Tool then Tool:Activate() end
+                        LocalPlayer.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- 4. Auto Grab (Pick up Brainrot)
+task.spawn(function()
+    while task.wait() do
+        if Toggles.Grab then
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj.Name == "Brainrot" or obj:FindFirstChild("ClickDetector") then
+                    local dist = (LocalPlayer.Character.HumanoidRootPart.Position - obj.Position).Magnitude
+                    if dist < 20 then
+                        fireclickdetector(obj.ClickDetector)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- Creating the Separated UI Boxes
+CreateBox("Left", "Auto Left")
+CreateBox("Right", "Auto Right")
+CreateBox("Bat", "Bat Target")
+CreateBox("Grab", "Auto Grab")
+
+-- Dragging Script (Mobile/PC)
+local gui = MainFrame
+local dragging, dragInput, dragStart, startPos
+gui.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true dragStart = input.Position startPos = gui.Position
+        input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+    end
+end)
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
