@@ -1,0 +1,137 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+
+-- Clean up old versions before running
+if CoreGui:FindFirstChild("VoidHub") then CoreGui.VoidHub:Destroy() end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "VoidHub"
+ScreenGui.Parent = CoreGui -- Better than PlayerGui for executors
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.Position = UDim2.new(0.5, -110, 0.5, -200)
+MainFrame.Size = UDim2.new(0, 220, 0, 460)
+MainFrame.BorderSizePixel = 0
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 15)
+MainCorner.Parent = MainFrame
+
+-- Top "ht" Discord Link
+local DiscordLink = Instance.new("TextButton")
+DiscordLink.Parent = MainFrame
+DiscordLink.BackgroundTransparency = 1
+DiscordLink.Position = UDim2.new(0, 0, 0, 10)
+DiscordLink.Size = UDim2.new(1, 0, 0, 30)
+DiscordLink.Font = Enum.Font.GothamBold
+DiscordLink.Text = "ht"
+DiscordLink.TextColor3 = Color3.fromRGB(180, 100, 255)
+DiscordLink.TextSize = 25
+
+DiscordLink.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard("https://discord.gg/3fq5BTMp8")
+        print("Link Copied!")
+    end
+end)
+
+-- Speed Label
+local SpeedLabel = Instance.new("TextLabel")
+SpeedLabel.Parent = MainFrame
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Position = UDim2.new(0, 0, 0, 40)
+SpeedLabel.Size = UDim2.new(1, 0, 0, 20)
+SpeedLabel.Font = Enum.Font.GothamBold
+SpeedLabel.Text = "Speed: 0.0"
+SpeedLabel.TextColor3 = Color3.fromRGB(255, 60, 255)
+SpeedLabel.TextSize = 16
+
+-- Container for buttons
+local ScrollingFrame = Instance.new("ScrollingFrame")
+ScrollingFrame.Parent = MainFrame
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.Position = UDim2.new(0, 10, 0, 70)
+ScrollingFrame.Size = UDim2.new(0, 200, 0, 370)
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 400)
+ScrollingFrame.ScrollBarThickness = 0
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = ScrollingFrame
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.Padding = UDim.new(0, 10)
+
+-- Function to make buttons
+local function CreateButton(txt)
+    local Button = Instance.new("TextButton")
+    Button.Parent = ScrollingFrame
+    Button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    Button.Size = UDim2.new(1, 0, 0, 50)
+    Button.Font = Enum.Font.GothamBold
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.Text = txt .. " OFF"
+    Button.TextSize = 14
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 10)
+    Corner.Parent = Button
+    
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Parent = Button
+    Stroke.Thickness = 2
+    Stroke.Color = Color3.fromRGB(100, 50, 200)
+    
+    local active = false
+    Button.MouseButton1Click:Connect(function()
+        active = not active
+        if active then
+            Button.BackgroundColor3 = Color3.fromRGB(100, 50, 200)
+            Button.Text = txt .. " ON"
+        else
+            Button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+            Button.Text = txt .. " OFF"
+        end
+    end)
+end
+
+-- Generate the buttons from your image
+CreateButton("Auto Left")
+CreateButton("Auto Right")
+CreateButton("Bat Target")
+CreateButton("Carry Mode")
+CreateButton("Auto Grab")
+
+-- FIX: Modern Dragging Script (Works on Mobile & PC)
+local UserInputService = game:GetService("UserInputService")
+local gui = MainFrame
+local dragging, dragInput, dragStart, startPos
+
+local function update(input)
+	local delta = input.Position - dragStart
+	gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+gui.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = gui.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then dragging = false end
+		end)
+	end
+end)
+
+gui.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then update(input) end
+end)
